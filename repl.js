@@ -145,5 +145,6 @@ if (process.argv[2]) {
     }
   }
   process.on('beforeExit', start);
+} else {
+  start();
 }
-
