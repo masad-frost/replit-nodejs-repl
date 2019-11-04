@@ -1,0 +1,14 @@
+{
+  "name": "repl-js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "repl.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "readline-sync": "1.4.9"
+  },
+  "author": "",
+  "license": "ISC"
+}
