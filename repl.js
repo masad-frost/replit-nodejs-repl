@@ -6,6 +6,7 @@ const fs = require('fs');
 const vm = require('vm');
 const rl = require('readline-sync');
 const tty = require('tty');
+const Module = require('module');
 
 let r;
 
@@ -108,15 +109,23 @@ if (process.argv[2]) {
   const mainPath = path.resolve(process.argv[2]);
   const main = fs.readFileSync(mainPath, 'utf-8');
 
-  global.__filename = mainPath;
-  global.__dirname = path.dirname(mainPath);
-  global.require = require;
+  // global.__filename = mainPath;
+  // global.__dirname = path.dirname(mainPath);
 
-  const childModule = new module.__proto__.constructor('.');
+	// const mod = new require('module')
+  // mod.parent = null;
+  // mod.filename = mainPath;
+  // mod.paths = module.paths;
+	// global.require = (path) => mod.require(path); 
+  // global.module = mod;
+
+  const childModule = new module.__proto__.constructor(mainPath);
   childModule.parent = null;
   childModule.filename = mainPath;
   childModule.paths = module.paths;
   global.module = childModule;
+  global.require = require
+
 
   let script;
   try {
