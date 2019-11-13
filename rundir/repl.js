@@ -69,7 +69,7 @@ function start(context) {
     prompt: '\u001b[33m\uEEA7\u001b[00m ',
   });
   if (context) r.context = context;
-  //if (context) r.context = context;
+
   // remove the internal error and ours for red etc.
   r._domain.removeListener('error', r._domain.listeners('error')[0]);
   r._domain.on('error', handleError);
@@ -159,7 +159,7 @@ if (process.argv[2]) {
       handleError(e);
     }
 
-    if (typeof res !== 'undefined') {
+    if (typeof res !== 'undefined') {    
       console.log(res);
     }
   }
