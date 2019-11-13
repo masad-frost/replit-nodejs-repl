@@ -12,7 +12,7 @@ let r;
 
 // Red errors.
 function logError(msg) {
-  process.stdout.write('\u001b[31m' + msg + '\u001b[0m');
+  process.stdout.write('\u001b[90m' + msg + '\u001b[39m');
 }
 
 // The nodejs repl operates in raw mode and does some funky stuff to
@@ -64,11 +64,12 @@ function handleError(e) {
   }
 }
 
-function start() {
+function start(context) {
   r = repl.start({
     prompt: '\u001b[33m\uEEA7\u001b[00m ',
-    useGlobal: true,
   });
+  if (context) r.context = context;
+  //if (context) r.context = context;
   // remove the internal error and ours for red etc.
   r._domain.removeListener('error', r._domain.listeners('error')[0]);
   r._domain.on('error', handleError);
@@ -108,24 +109,35 @@ global.confirm = q => {
 if (process.argv[2]) {
   const mainPath = path.resolve(process.argv[2]);
   const main = fs.readFileSync(mainPath, 'utf-8');
+  const module = new Module(mainPath, null);
 
-  // global.__filename = mainPath;
-  // global.__dirname = path.dirname(mainPath);
+  module.id = '.';
+  process.mainModule = module;
+  module.filename = mainPath;
+  const sandbox = {
+    module,
+    require: module.require.bind(module),
+    __dirname: path.dirname(mainPath),
+    __filename: mainPath,
 
-	// const mod = new require('module')
-  // mod.parent = null;
-  // mod.filename = mainPath;
-  // mod.paths = module.paths;
-	// global.require = (path) => mod.require(path); 
-  // global.module = mod;
+    // These are deprecated properties and accessing them will trigger a warning.
+    // We add them manually for backward compat.
+    GLOBAL: global,
+    root: global,
+  };
 
-  const childModule = new module.__proto__.constructor(mainPath);
-  childModule.parent = null;
-  childModule.filename = mainPath;
-  childModule.paths = module.paths;
-  global.module = childModule;
-  global.require = require
 
+  // These properties will show a warning. We can avoid them.
+  for (const prop of Object.getOwnPropertyNames(global)) {
+    if (sandbox.hasOwnProperty(prop)) {
+      continue;
+    }
+
+    sandbox[prop] = global[prop];
+  }
+
+  console.log('\u001b[90mHint: hit control+c anytime to enter REPL.\u001b[39m');
+  const context = vm.createContext(sandbox);
 
   let script;
   try {
@@ -138,11 +150,9 @@ if (process.argv[2]) {
   }
 
   if (script) {
-    process.on('SIGINT', start);
-    
     let res;
     try {
-      res = script.runInThisContext({
+      res = script.runInContext(context, {
         displayErrors: false,
       });
     } catch (e) {
@@ -153,7 +163,12 @@ if (process.argv[2]) {
       console.log(res);
     }
   }
-  process.on('beforeExit', start);
+
+
+  process.chdir(path.dirname(mainPath))
+  process.on('SIGINT', () => start(context));
+
+  process.on('beforeExit', () => start(context));
 } else {
   start();
 }

@@ -1,7 +1,3 @@
-// console.log('require.resolve=',require.resolve('./'))
+let x = 22
 
-console.log(module)
-
-require('./a');
-console.log('stuck');
-setTimeout(() => {}, 100000000)
+x;
