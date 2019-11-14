@@ -1,2 +1,1 @@
-x = 11
-x
+require('readline-sync')

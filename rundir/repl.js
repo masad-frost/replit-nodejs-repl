@@ -12,7 +12,7 @@ let r;
 
 // Red errors.
 function logError(msg) {
-  process.stdout.write('\u001b[90m' + msg + '\u001b[39m');
+  process.stdout.write('\u001b[0m\u001b[31m' + msg + '\u001b[0m');
 }
 
 // The nodejs repl operates in raw mode and does some funky stuff to
@@ -112,8 +112,10 @@ if (process.argv[2]) {
   const module = new Module(mainPath, null);
 
   module.id = '.';
-  process.mainModule = module;
   module.filename = mainPath;
+  module.paths = Module._nodeModulePaths(path.dirname(mainPath));
+
+  process.mainModule = module;
   const sandbox = {
     module,
     require: module.require.bind(module),
@@ -136,7 +138,7 @@ if (process.argv[2]) {
     sandbox[prop] = global[prop];
   }
 
-  console.log('\u001b[90mHint: hit control+c anytime to enter REPL.\u001b[39m');
+  console.log('\u001b[0m\u001b[90mHint: hit control+c anytime to enter REPL.\u001b[0m');
   const context = vm.createContext(sandbox);
 
   let script;
@@ -159,13 +161,13 @@ if (process.argv[2]) {
       handleError(e);
     }
 
-    if (typeof res !== 'undefined') {    
+    module.loaded = true;
+    
+    if (typeof res !== 'undefined') {
       console.log(res);
     }
   }
 
-
-  process.chdir(path.dirname(mainPath))
   process.on('SIGINT', () => start(context));
 
   process.on('beforeExit', () => start(context));
